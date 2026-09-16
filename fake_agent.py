@@ -18,6 +18,9 @@ from urllib.request import Request, urlopen
 
 DEFAULT_STATE_FILE = Path(__file__).with_name("fake-agent-client.json")
 JSONRPC_VERSION = "2.0"
+DISTRIBUTION_HEADER = "X-SIXOSN-Komari-Distribution"
+AGENT_DISTRIBUTION = "SIXOSN/komari-agent"
+SERVER_DISTRIBUTION = "SIXOSN/komari"
 
 
 class FakeAgent:
@@ -42,11 +45,13 @@ class FakeAgent:
         request = Request(
             self.endpoint("/api/clients/v2/rpc"),
             data=data,
-            headers={"Content-Type": "application/json"},
+            headers={"Content-Type": "application/json", DISTRIBUTION_HEADER: AGENT_DISTRIBUTION},
             method="POST",
         )
         try:
             with urlopen(request, timeout=self.timeout) as response:
+                if response.headers.get(DISTRIBUTION_HEADER) != SERVER_DISTRIBUTION:
+                    raise RuntimeError("incompatible server distribution")
                 body = response.read()
         except HTTPError as exc:
             raise RuntimeError(f"HTTP {exc.code}: {exc.read().decode(errors='replace')}") from exc
@@ -168,9 +173,11 @@ def load_client(state_file: Path) -> dict[str, str]:
 
 def register_client(server: str, adkey: str, name: str, timeout: float) -> dict[str, str]:
     url = f"{server.rstrip('/')}/api/clients/register?name={quote(name, safe='')}"
-    request = Request(url, data=b"{}", headers={"Authorization": f"Bearer {adkey}", "Content-Type": "application/json"}, method="POST")
+    request = Request(url, data=b"{}", headers={"Authorization": f"Bearer {adkey}", "Content-Type": "application/json", DISTRIBUTION_HEADER: AGENT_DISTRIBUTION}, method="POST")
     try:
         with urlopen(request, timeout=timeout) as response:
+            if response.headers.get(DISTRIBUTION_HEADER) != SERVER_DISTRIBUTION:
+                raise RuntimeError("incompatible server distribution")
             result = json.loads(response.read())
     except HTTPError as exc:
         raise RuntimeError(f"registration failed, HTTP {exc.code}: {exc.read().decode(errors='replace')}") from exc

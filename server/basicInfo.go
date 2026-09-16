@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -84,6 +85,7 @@ func tryUploadDataWithProtocol(data map[string]interface{}) error {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(v2.DistributionHeader, v2.AgentDistribution)
 	if compressed {
 		req.Header.Set("Content-Encoding", "gzip")
 	}
@@ -104,6 +106,9 @@ func tryUploadDataWithProtocol(data map[string]interface{}) error {
 
 	if resp.StatusCode != http.StatusOK {
 		return &httpStatusError{StatusCode: resp.StatusCode, Status: resp.Status, Body: message}
+	}
+	if resp.Header.Get(v2.DistributionHeader) != v2.ServerDistribution {
+		return fmt.Errorf("incompatible server distribution")
 	}
 	if len(bytes.TrimSpace(respBody)) > 0 {
 		if _, err := parseV2Response(respBody); err != nil {

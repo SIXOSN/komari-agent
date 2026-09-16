@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/komari-monitor/komari-agent/dnsresolver"
+	v2 "github.com/komari-monitor/komari-agent/protocol/v2"
 	"github.com/komari-monitor/komari-agent/utils"
 )
 
@@ -130,6 +131,7 @@ func registerWithAutoDiscovery() error {
 	// 设置请求头
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", flags.AutoDiscoveryKey))
+	req.Header.Set(v2.DistributionHeader, v2.AgentDistribution)
 
 	// 发送请求
 	client := dnsresolver.GetHTTPClientWithPreference(30*time.Second, flags.PreferIPVersion)
@@ -143,6 +145,9 @@ func registerWithAutoDiscovery() error {
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("register request failed with status %d: %s", resp.StatusCode, string(body))
+	}
+	if resp.Header.Get(v2.DistributionHeader) != v2.ServerDistribution {
+		return fmt.Errorf("incompatible server distribution")
 	}
 
 	// 解析响应

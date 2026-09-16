@@ -1,5 +1,8 @@
 # komari-agent
 
+> [!IMPORTANT]
+> This SIXOSN distribution is intentionally locked to the SIXOSN Komari server distribution. It does not provide remote command execution, web terminal, or remote file-management capabilities, and its updater only checks `SIXOSN/komari-agent` releases.
+
 ## 配置方式
 
 agent 参数可以通过命令行参数、环境变量或 JSON 配置文件传入。
@@ -32,7 +35,6 @@ export AGENT_TOKEN="your-token"
   "token": "your-token",
   "interval": 3,
   "disable_auto_update": false,
-  "disable_web_ssh": false,
   "ignore_unsafe_cert": false
 }
 ```
@@ -49,7 +51,6 @@ export AGENT_TOKEN="your-token"
 | `token` | `AGENT_TOKEN` | `--token`, `-t` | agent token | `0.0.9` |
 | `interval` | `AGENT_INTERVAL` | `--interval`, `-i` | 数据采集间隔，单位秒 | `0.0.9` |
 | `disable_auto_update` | `AGENT_DISABLE_AUTO_UPDATE` | `--disable-auto-update` | 禁用自动更新 | `0.0.9` |
-| `disable_web_ssh` | `AGENT_DISABLE_WEB_SSH` | `--disable-web-ssh` | 禁用远程控制 | `0.0.9` |
 | `ignore_unsafe_cert` | `AGENT_IGNORE_UNSAFE_CERT` | `--ignore-unsafe-cert`, `-u` | 忽略不安全证书 | `0.0.9` |
 | `include_nics` | `AGENT_INCLUDE_NICS` | `--include-nics` | 仅统计指定网卡，逗号分隔 | `0.0.22` |
 | `exclude_nics` | `AGENT_EXCLUDE_NICS` | `--exclude-nics` | 排除指定网卡，逗号分隔 | `0.0.22` |

@@ -6,19 +6,17 @@ import (
 )
 
 const (
+	DistributionHeader      = "X-SIXOSN-Komari-Distribution"
+	ServerDistribution      = "SIXOSN/komari"
+	AgentDistribution       = "SIXOSN/komari-agent"
 	Version               = "2.0"
 	MethodAgentReport     = "agent.report"
 	MethodAgentBasicInfo  = "agent.basicInfo"
 	MethodAgentPingResult = "agent.pingResult"
-	MethodAgentTaskResult = "agent.taskResult"
-	MethodAgentExec       = "agent.exec"
 	MethodAgentPing       = "agent.ping"
 	MethodAgentMessage    = "agent.message"
 	MethodAgentEvent      = "agent.event"
-	MethodAgentTerminal   = "agent.terminal.request"
 	MethodAgentPull       = "agent.pull"
-	MethodAgentFile       = "agent.file"
-	MethodAgentFileResult = "agent.file.result"
 )
 
 type Request struct {
@@ -41,13 +39,6 @@ type RPCError struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 
-type TaskResultParams struct {
-	TaskID     string    `json:"task_id"`
-	Result     string    `json:"result"`
-	ExitCode   int       `json:"exit_code"`
-	FinishedAt time.Time `json:"finished_at"`
-}
-
 type Event struct {
 	ID        string      `json:"id"`
 	Method    string      `json:"method"`
@@ -59,23 +50,6 @@ type Event struct {
 type EventResult struct {
 	Status string  `json:"status,omitempty"`
 	Events []Event `json:"events,omitempty"`
-}
-
-// FileOperation is metadata-only. File contents travel through the dedicated
-// HTTP transfer endpoint rather than through JSON-RPC.
-type FileOperation struct {
-	UUID      string                 `json:"uuid"`
-	RequestID string                 `json:"request_id"`
-	Op        string                 `json:"op"`
-	Args      map[string]interface{} `json:"args,omitempty"`
-}
-
-type FileResult struct {
-	UUID      string          `json:"uuid"`
-	RequestID string          `json:"request_id"`
-	OK        bool            `json:"ok"`
-	Result    json.RawMessage `json:"result,omitempty"`
-	Error     string          `json:"error,omitempty"`
 }
 
 func NewNotification(method string, params interface{}) []byte {
