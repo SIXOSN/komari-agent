@@ -17,7 +17,13 @@ var routeTraceSlots = make(chan struct{}, 1)
 
 // NewRouteTraceTask probes the path to the same host and port as a TCP Ping task.
 // Only one trace runs at a time on an agent to bound raw socket and network use.
-func NewRouteTraceTask(conn *ws.SafeConn, taskID uint, target string) {
+func NewRouteTraceTask(conn *ws.SafeConn, taskID uint, target, family string) {
+	if family == "" {
+		family = "ipv4"
+	}
+	if family != "ipv4" && family != "ipv6" {
+		return
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
@@ -38,7 +44,7 @@ func NewRouteTraceTask(conn *ws.SafeConn, taskID uint, target string) {
 	if err != nil || port < 1 || port > 65535 || strings.TrimSpace(host) == "" {
 		traceErr = fmt.Errorf("invalid TCP Ping target")
 	} else {
-		hops, traceErr = traceTCPRoute(ctx, host, port)
+		hops, traceErr = traceTCPRoute(ctx, host, port, family)
 	}
 
 	errText := ""
@@ -46,7 +52,7 @@ func NewRouteTraceTask(conn *ws.SafeConn, taskID uint, target string) {
 		errText = traceErr.Error()
 		log.Printf("Route trace task %d failed: %s", taskID, errText)
 	}
-	payload := v2.BuildRouteResultPayload(taskID, target, hops, errText, time.Now().UTC())
+	payload := v2.BuildRouteResultPayload(taskID, target, family, hops, errText, time.Now().UTC())
 	if conn == nil {
 		if err := postV2RPC(payload); err != nil {
 			log.Printf("Failed to upload route trace over POST: %v", err)

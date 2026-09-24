@@ -6,19 +6,19 @@ import (
 )
 
 const (
-	DistributionHeader      = "X-SIXOSN-Komari-Distribution"
-	ServerDistribution      = "SIXOSN/komari"
-	AgentDistribution       = "SIXOSN/komari-agent"
-	Version               = "2.0"
-	MethodAgentReport     = "agent.report"
-	MethodAgentBasicInfo  = "agent.basicInfo"
-	MethodAgentPingResult = "agent.pingResult"
-	MethodAgentPing       = "agent.ping"
-	MethodAgentRouteTrace = "agent.routeTrace"
+	DistributionHeader     = "X-SIXOSN-Komari-Distribution"
+	ServerDistribution     = "SIXOSN/komari"
+	AgentDistribution      = "SIXOSN/komari-agent"
+	Version                = "2.0"
+	MethodAgentReport      = "agent.report"
+	MethodAgentBasicInfo   = "agent.basicInfo"
+	MethodAgentPingResult  = "agent.pingResult"
+	MethodAgentPing        = "agent.ping"
+	MethodAgentRouteTrace  = "agent.routeTrace"
 	MethodAgentRouteResult = "agent.routeResult"
-	MethodAgentMessage    = "agent.message"
-	MethodAgentEvent      = "agent.event"
-	MethodAgentPull       = "agent.pull"
+	MethodAgentMessage     = "agent.message"
+	MethodAgentEvent       = "agent.event"
+	MethodAgentPull        = "agent.pull"
 )
 
 type Request struct {
@@ -94,15 +94,16 @@ func BuildPingResultPayload(taskID uint, pingType string, value int, finishedAt 
 	}
 }
 
-func BuildRouteResultPayload(taskID uint, target string, hops []string, traceError string, finishedAt time.Time) interface{} {
+func BuildRouteResultPayload(taskID uint, target, family string, hops []string, traceError string, finishedAt time.Time) interface{} {
 	return Request{
 		JSONRPC: Version,
 		Method:  MethodAgentRouteResult,
 		Params: map[string]interface{}{
-			"task_id": taskID,
-			"target": target,
-			"hops": hops,
-			"error": traceError,
+			"task_id":     taskID,
+			"target":      target,
+			"family":      family,
+			"hops":        hops,
+			"error":       traceError,
 			"finished_at": finishedAt.Format(time.RFC3339Nano),
 		},
 	}

@@ -21,19 +21,36 @@ import (
 
 // resolveIP 解析域名到 IP 地址，排除 DNS 查询时间
 func resolveIP(target string) (string, error) {
+	return resolveIPFamily(target, "")
+}
+
+func resolveIPFamily(target, family string) (string, error) {
 	// 如果已经是 IP 地址，直接返回
 	if ip := net.ParseIP(target); ip != nil {
+		if family == "ipv4" && ip.To4() == nil || family == "ipv6" && ip.To4() != nil {
+			return "", errors.New("target address family does not match")
+		}
 		return target, nil
 	}
 	// 解析域名到 IP
-	addrs, err := net.LookupHost(target)
+	network := "ip"
+	if family == "ipv4" {
+		network = "ip4"
+	} else if family == "ipv6" {
+		network = "ip6"
+	}
+	addrs, err := net.DefaultResolver.LookupIP(context.Background(), network, target)
 	if err != nil || len(addrs) == 0 {
 		return "", errors.New("failed to resolve target")
 	}
-	return addrs[0], nil // 返回第一个解析的 IP
+	return addrs[0].String(), nil // 返回第一个解析的 IP
 }
 
 func icmpPing(target string, timeout time.Duration) (int64, error) {
+	return icmpPingFamily(target, timeout, "")
+}
+
+func icmpPingFamily(target string, timeout time.Duration, family string) (int64, error) {
 	host, _, err := net.SplitHostPort(target)
 	if err != nil {
 		host = target
@@ -43,7 +60,7 @@ func icmpPing(target string, timeout time.Duration) (int64, error) {
 	host = strings.Trim(host, "[]")
 
 	// 先解析 IP 地址
-	ip, err := resolveIP(host)
+	ip, err := resolveIPFamily(host, family)
 	if err != nil {
 		return -1, err
 	}
@@ -67,6 +84,10 @@ func icmpPing(target string, timeout time.Duration) (int64, error) {
 }
 
 func tcpPing(target string, timeout time.Duration) (int64, error) {
+	return tcpPingFamily(target, timeout, "")
+}
+
+func tcpPingFamily(target string, timeout time.Duration, family string) (int64, error) {
 	host, port, err := net.SplitHostPort(target)
 	if err != nil {
 		// No port, assume port 80
@@ -77,7 +98,7 @@ func tcpPing(target string, timeout time.Duration) (int64, error) {
 	// If the host is an IPv6 literal, it might be wrapped in brackets.
 	host = strings.Trim(host, "[]")
 
-	ip, err := resolveIP(host)
+	ip, err := resolveIPFamily(host, family)
 	if err != nil {
 		return -1, err
 	}
@@ -139,7 +160,7 @@ func httpPing(target string, timeout time.Duration) (int64, error) {
 	return latency, errors.New("http status not ok")
 }
 
-func NewPingTask(conn *ws.SafeConn, taskID uint, pingType, pingTarget string) {
+func NewPingTask(conn *ws.SafeConn, taskID uint, pingType, pingTarget, family string) {
 	if taskID == 0 {
 		log.Printf("Invalid task ID: %d", taskID)
 		return
@@ -155,9 +176,9 @@ func NewPingTask(conn *ws.SafeConn, taskID uint, pingType, pingTarget string) {
 	measure := func() (int64, error) {
 		switch pingType {
 		case "icmp":
-			return icmpPing(pingTarget, timeout)
+			return icmpPingFamily(pingTarget, timeout, family)
 		case "tcp":
-			return tcpPing(pingTarget, timeout)
+			return tcpPingFamily(pingTarget, timeout, family)
 		case "http":
 			return httpPing(pingTarget, timeout)
 		default:

@@ -383,9 +383,10 @@ func processV2Event(conn *ws.SafeConn, method string, params interface{}, eventI
 			TaskID uint   `json:"ping_task_id"`
 			Type   string `json:"ping_type"`
 			Target string `json:"ping_target"`
+			Family string `json:"ip_family"`
 		}
 		if err := v2.BindParams(params, &p); err == nil {
-			go NewPingTask(conn, p.TaskID, p.Type, p.Target)
+			go NewPingTask(conn, p.TaskID, p.Type, p.Target, p.Family)
 			return true
 		} else {
 			log.Printf("bad v2 ping params: %v", err)
@@ -394,9 +395,10 @@ func processV2Event(conn *ws.SafeConn, method string, params interface{}, eventI
 		var p struct {
 			TaskID uint   `json:"ping_task_id"`
 			Target string `json:"ping_target"`
+			Family string `json:"ip_family"`
 		}
 		if err := v2.BindParams(params, &p); err == nil && p.TaskID != 0 && p.Target != "" {
-			go NewRouteTraceTask(conn, p.TaskID, p.Target)
+			go NewRouteTraceTask(conn, p.TaskID, p.Target, p.Family)
 			return true
 		}
 		log.Printf("bad v2 route trace params: %+v", params)
