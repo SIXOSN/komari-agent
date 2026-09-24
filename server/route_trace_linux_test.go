@@ -7,6 +7,7 @@ import (
 	"encoding/binary"
 	"net"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -36,7 +37,19 @@ func TestTraceTCPRouteLive(t *testing.T) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 40*time.Second)
 	defer cancel()
-	hops, err := traceTCPRoute(ctx, "1.1.1.1", 443)
+	target := os.Getenv("KOMARI_ROUTE_TRACE_TARGET")
+	if target == "" {
+		target = "1.1.1.1:443"
+	}
+	host, portText, err := net.SplitHostPort(target)
+	if err != nil {
+		t.Fatal(err)
+	}
+	port, err := strconv.Atoi(portText)
+	if err != nil {
+		t.Fatal(err)
+	}
+	hops, err := traceTCPRoute(ctx, host, port)
 	if err != nil {
 		t.Fatal(err)
 	}
