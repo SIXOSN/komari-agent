@@ -14,6 +14,8 @@ const (
 	MethodAgentBasicInfo  = "agent.basicInfo"
 	MethodAgentPingResult = "agent.pingResult"
 	MethodAgentPing       = "agent.ping"
+	MethodAgentRouteTrace = "agent.routeTrace"
+	MethodAgentRouteResult = "agent.routeResult"
 	MethodAgentMessage    = "agent.message"
 	MethodAgentEvent      = "agent.event"
 	MethodAgentPull       = "agent.pull"
@@ -87,6 +89,20 @@ func BuildPingResultPayload(taskID uint, pingType string, value int, finishedAt 
 			"task_id":     taskID,
 			"ping_type":   pingType,
 			"value":       value,
+			"finished_at": finishedAt.Format(time.RFC3339Nano),
+		},
+	}
+}
+
+func BuildRouteResultPayload(taskID uint, target string, hops []string, traceError string, finishedAt time.Time) interface{} {
+	return Request{
+		JSONRPC: Version,
+		Method:  MethodAgentRouteResult,
+		Params: map[string]interface{}{
+			"task_id": taskID,
+			"target": target,
+			"hops": hops,
+			"error": traceError,
 			"finished_at": finishedAt.Format(time.RFC3339Nano),
 		},
 	}

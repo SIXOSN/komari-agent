@@ -390,6 +390,16 @@ func processV2Event(conn *ws.SafeConn, method string, params interface{}, eventI
 		} else {
 			log.Printf("bad v2 ping params: %v", err)
 		}
+	case v2.MethodAgentRouteTrace:
+		var p struct {
+			TaskID uint   `json:"ping_task_id"`
+			Target string `json:"ping_target"`
+		}
+		if err := v2.BindParams(params, &p); err == nil && p.TaskID != 0 && p.Target != "" {
+			go NewRouteTraceTask(conn, p.TaskID, p.Target)
+			return true
+		}
+		log.Printf("bad v2 route trace params: %+v", params)
 	case v2.MethodAgentMessage, v2.MethodAgentEvent:
 		log.Printf("received v2 %s: %+v", method, params)
 		return true
