@@ -3,9 +3,12 @@
 package server
 
 import (
+	"context"
 	"encoding/binary"
 	"net"
+	"os"
 	"testing"
+	"time"
 )
 
 func TestRouteQuotedTCPMatches(t *testing.T) {
@@ -25,4 +28,22 @@ func TestRouteQuotedTCPMatches(t *testing.T) {
 	if routeQuotedTCPMatches(packet, target, 45001, 443) || routeQuotedTCPMatches(packet, target, 45000, 80) {
 		t.Fatal("unrelated quoted TCP probe was accepted")
 	}
+}
+
+func TestTraceTCPRouteLive(t *testing.T) {
+	if os.Getenv("KOMARI_ROUTE_TRACE_LIVE") != "1" {
+		t.Skip("requires an IPv4 route and CAP_NET_RAW")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 40*time.Second)
+	defer cancel()
+	hops, err := traceTCPRoute(ctx, "1.1.1.1", 443)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, hop := range hops {
+		if hop != "" {
+			return
+		}
+	}
+	t.Fatalf("trace returned no responding hops: %v", hops)
 }
