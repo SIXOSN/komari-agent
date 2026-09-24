@@ -95,6 +95,14 @@ func BuildPingResultPayload(taskID uint, pingType string, value int, finishedAt 
 }
 
 func BuildRouteResultPayload(taskID uint, target, family string, hops []string, traceError string, finishedAt time.Time) interface{} {
+	return BuildRouteResultPayloadDetailed(taskID, target, family, "", 0, hops, traceError, finishedAt)
+}
+
+func BuildRouteResultPayloadDetailed(taskID uint, target, family, resolvedIP string, attempts int, hops []string, traceError string, finishedAt time.Time) interface{} {
+	return BuildRouteResultPayloadWithSamples(taskID, target, family, resolvedIP, attempts, hops, nil, traceError, finishedAt)
+}
+
+func BuildRouteResultPayloadWithSamples(taskID uint, target, family, resolvedIP string, attempts int, hops []string, samples [][]string, traceError string, finishedAt time.Time) interface{} {
 	return Request{
 		JSONRPC: Version,
 		Method:  MethodAgentRouteResult,
@@ -102,7 +110,10 @@ func BuildRouteResultPayload(taskID uint, target, family string, hops []string, 
 			"task_id":     taskID,
 			"target":      target,
 			"family":      family,
+			"resolved_ip": resolvedIP,
+			"attempts":    attempts,
 			"hops":        hops,
+			"samples":     samples,
 			"error":       traceError,
 			"finished_at": finishedAt.Format(time.RFC3339Nano),
 		},
