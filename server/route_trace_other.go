@@ -7,6 +7,6 @@ import (
 	"errors"
 )
 
-func traceTCPRoute(_ context.Context, _ string, _ int) ([]string, error) {
+func traceTCPRoute(_ context.Context, _ string, _ int, _ string) ([]string, error) {
 	return nil, errors.New("TCP route tracing is currently supported on Linux agents")
 }

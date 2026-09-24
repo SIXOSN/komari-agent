@@ -49,7 +49,7 @@ func TestTraceTCPRouteLive(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	hops, err := traceTCPRoute(ctx, host, port)
+	hops, err := traceTCPRoute(ctx, host, port, "ipv4")
 	if err != nil {
 		t.Fatal(err)
 	}
