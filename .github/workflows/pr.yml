@@ -12,8 +12,8 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      # Existing TCP/HTTP Ping integration tests require external hosts and IPv6.
-      - run: go test ./... -skip 'TestTCPPing|TestHTTPPing'
+      # Existing Ping integration tests require external hosts, IPv6 and raw sockets.
+      - run: go test ./... -skip 'TestICMPPing|TestTCPPing|TestHTTPPing'
 
   build:
     runs-on: ubuntu-latest
